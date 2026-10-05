@@ -1,0 +1,855 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AeroMaint AI — Fleet Command Center</title><link rel="stylesheet" href="/static/style.css"></head><body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">A</div>
+    <div><b>AeroMaint <span>AI</span></b><small>Predictive Maintenance & Fleet Availability</small></div>
+  </div>
+  <nav class="command-nav" aria-label="Dashboard sections">
+    <a href="#overview">Overview</a>
+    <a href="#fleet-analytics">Fleet</a>
+    <a href="#ai-command">AI Command</a>
+    <a href="#optimization">Optimization</a>
+    <a href="#maintenance">Maintenance</a>
+  </nav>
+  <div class="tag">FLEET COMMAND</div>
+</header>
+<main>
+<section class="hero" id="overview"><div><label>FLEET INTELLIGENCE</label><h1>Aircraft Health & Maintenance Overview</h1><p>AI-powered predictive maintenance, live telemetry and digital-twin health monitoring.</p></div><button onclick="loadAll()">Refresh</button></section>
+<section class="cards"><article><small>Total Aircraft</small><strong id="total">—</strong></article><article><small>Healthy</small><strong id="healthy">—</strong></article><article><small>Medium Risk</small><strong id="medium">—</strong></article><article class="danger"><small>High Risk</small><strong id="high">—</strong></article><article><small>Fleet Availability</small><strong id="availability">—</strong></article></section>
+<section class="mini-cards"><article><small>Open Work Orders</small><strong id="openOrders">—</strong></article><article><small>Low Stock Parts</small><strong id="lowStock">—</strong></article><article><small>Avg Engine Temp</small><strong id="avgTemp">—</strong></article><article><small>Avg Vibration</small><strong id="avgVibration">—</strong></article><article><small>Avg Oil Pressure</small><strong id="avgPressure">—</strong></article></section>
+<section class="analytics-grid"><div class="panel"><div class="panel-title"><div><label>14-DAY TREND</label><h2>Fleet Temperature</h2></div><span class="legend-dot"></span></div><canvas id="temperatureChart" width="700" height="260"></canvas></div><div class="panel"><label>AVAILABILITY BY FLEET TYPE</label><h2>Operational Availability</h2><div id="availabilityList" class="availability-list"></div></div></section>
+<section class="panel" id="fleet-analytics"><div class="panel-title"><div><label>FLEET ANALYTICS</label><h2>Aircraft Risk Prioritization</h2></div></div><p class="muted">Select an aircraft to view AI prediction, create a maintenance work order or open its digital twin.</p><div class="table-wrap"><table><thead><tr><th>Aircraft</th><th>Type</th><th>Risk</th><th>Status</th><th>Temp</th><th>Vibration</th><th>Flight Hours</th><th>Action</th></tr></thead><tbody id="fleetBody"></tbody></table></div></section>
+<section id="predictionPanel" class="panel prediction hidden"><div class="prediction-head"><div><label>AI PREDICTIVE MAINTENANCE</label><h2 id="aircraftTitle">Aircraft</h2></div><button class="close" onclick="closePrediction()">Close</button></div><div class="prediction-grid"><div class="metric"><small>Failure Probability</small><strong id="failureProbability">—</strong></div><div class="metric"><small>AI Risk Level</small><strong id="aiRisk">—</strong></div><div class="metric"><small>Predicted Issue</small><strong id="predictedIssue">—</strong></div><div class="metric"><small>Recommended Action</small><strong id="recommendation">—</strong></div></div><div class="action-row"><select id="team"><option>Maintenance Team A</option><option>Maintenance Team B</option><option>Avionics Team</option><option>Engine Team</option></select><input id="scheduleDate" type="date"><button onclick="createWorkOrder()">Create Work Order</button></div><div class="history-box"><label>14-DAY AIRCRAFT HEALTH HISTORY</label><h3>Temperature Trend</h3><canvas id="aircraftChart" width="1000" height="260"></canvas></div></section>
+
+<section id="digitalTwinPanel" class="panel twin-panel hidden">
+  <div class="prediction-head">
+    <div><label>DIGITAL TWIN • LIVE SIMULATION</label><h2 id="twinTitle">Aircraft</h2></div>
+    <div class="twin-controls"><span id="twinUpdated" class="muted">Telemetry idle</span><button class="close" onclick="closeDigitalTwin()">Close</button></div>
+  </div>
+
+  <div class="simulation-toolbar">
+    <div>
+      <small>SIMULATION SCENARIO</small>
+      <select id="simulationScenario">
+        <option>NORMAL</option>
+        <option>THERMAL STRESS</option>
+        <option>HIGH VIBRATION</option>
+        <option>LOW OIL PRESSURE</option>
+      </select>
+    </div>
+    <div class="simulation-actions">
+      <button id="startSimulationBtn" onclick="startTwinSimulation()">Start Simulation</button>
+      <button id="stopSimulationBtn" class="secondary-btn" onclick="stopTwinSimulation()">Pause</button>
+      <button class="secondary-btn" onclick="resetTwinSimulation()">Reset</button>
+    </div>
+    <span id="simulationState" class="status healthy">IDLE</span>
+  </div>
+
+  <div class="twin-summary">
+    <div class="twin-score"><small>OVERALL TWIN HEALTH</small><strong id="twinHealth">—</strong><span id="twinState" class="status healthy">—</span></div>
+    <div class="twin-alerts"><small>ACTIVE ALERTS</small><div id="twinAlerts" class="alert-list">No active alerts</div></div>
+  </div>
+
+  <div class="telemetry-grid">
+    <div class="metric"><small>Engine Temperature</small><strong id="liveTemp">—</strong></div>
+    <div class="metric"><small>Vibration</small><strong id="liveVibration">—</strong></div>
+    <div class="metric"><small>Oil Pressure</small><strong id="livePressure">—</strong></div>
+    <div class="metric"><small>Flight Hours</small><strong id="liveHours">—</strong></div>
+  </div>
+
+  <div class="simulation-insights">
+    <div class="metric"><small>LIVE FAILURE PROBABILITY</small><strong id="liveFailureProbability">—</strong></div>
+    <div class="metric"><small>AI RISK</small><strong id="liveRiskLevel">—</strong></div>
+    <div class="metric"><small>PRIORITY</small><strong id="livePriority">—</strong></div>
+    <div class="metric"><small>PREDICTED ISSUE</small><strong id="liveIssue">—</strong></div>
+  </div>
+
+  <div class="component-grid" id="componentGrid"></div>
+  <p class="twin-note">Digital-twin simulation uses synthetic telemetry held in memory. Scenario changes dynamically recalculate digital-twin health and AI maintenance risk without modifying the aircraft database.</p>
+</section>
+
+<section id="decisionPanel" class="panel decision-panel hidden">
+  <div class="prediction-head">
+    <div><label>AI DECISION SUPPORT</label><h2 id="decisionTitle">Aircraft</h2></div>
+    <button class="close" onclick="closeDecision()">Close</button>
+  </div>
+  <div class="decision-banner">
+    <div><div class="decision-label">RECOMMENDED DECISION</div><strong id="decisionText">—</strong></div>
+    <span id="decisionPriority" class="priority critical">—</span>
+  </div>
+  <div class="decision-grid">
+    <div class="metric"><small>Failure Probability</small><strong id="decisionFailure">—</strong></div>
+    <div class="metric"><small>Digital Twin Health</small><strong id="decisionTwin">—</strong></div>
+    <div class="metric"><small>Maintenance Window</small><strong id="decisionWindow">—</strong></div>
+    <div class="metric"><small>Predicted Issue</small><strong id="decisionIssue">—</strong></div>
+  </div>
+  <div class="decision-columns">
+    <div>
+      <label>EXPLAINABLE AI • TOP RISK FACTORS</label>
+      <div id="riskFactors" class="factor-list"></div>
+    </div>
+    <div>
+      <label>RECOMMENDED SPARE PARTS</label>
+      <div id="recommendedParts" class="parts-list"></div>
+    </div>
+  </div>
+  <div class="recommendation-box"><small>MAINTENANCE RECOMMENDATION</small><strong id="decisionRecommendation">—</strong></div>
+</section>
+
+<section class="two-col">
+  <div class="panel">
+    <div class="panel-title">
+      <div><label>AI DECISION SUPPORT</label><h2>Maintenance Priority Queue</h2></div>
+      <button onclick="loadPriorityQueue()">Refresh</button>
+    </div>
+    <p class="muted">AI-ranked aircraft combining failure probability, current risk and digital-twin health.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Aircraft</th><th>Priority</th><th>Failure</th><th>Twin</th><th>Issue</th><th>Action</th></tr></thead>
+        <tbody id="priorityBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="panel">
+    <label>MAINTENANCE INSIGHTS</label><h2>Fleet Risk & Decision Summary</h2>
+    <div class="insight-subtitle">Fleet Risk — matches the dashboard risk thresholds</div>
+    <div id="riskInsightsGrid" class="insights-grid"></div>
+    <div class="insight-subtitle">Decision Support — AI maintenance priority</div>
+    <div id="insightsGrid" class="insights-grid"></div>
+    <div class="insight-subtitle">Low-stock parts</div>
+    <div id="insightParts" class="insight-list"></div>
+  </div>
+</section>
+
+<section class="panel optimization-panel" id="optimization">
+  <div class="panel-title">
+    <div><label>FLEET OPTIMIZATION</label><h2>Fleet Availability & Maintenance Optimization</h2></div>
+    <button onclick="loadOptimization()">Refresh</button>
+  </div>
+  <p class="muted">AI decision-support layer that prioritizes maintenance while protecting fleet readiness and operational availability.</p>
+  <div class="optimization-cards">
+    <div class="insight-card info"><small>FLEET READINESS</small><strong id="fleetReadiness">—</strong></div>
+    <div class="insight-card healthy"><small>READY AIRCRAFT</small><strong id="readyAircraft">—</strong></div>
+    <div class="insight-card high"><small>AT-RISK AIRCRAFT</small><strong id="atRiskAircraft">—</strong></div>
+    <div class="insight-card critical"><small>PRIORITY MAINTENANCE</small><strong id="priorityMaintenance">—</strong></div>
+  </div>
+  <div class="optimization-grid">
+    <div>
+      <label>AVAILABILITY BY AIRCRAFT TYPE</label>
+      <div id="optimizationTypes" class="availability-list"></div>
+    </div>
+    <div>
+      <label>OPTIMIZED MAINTENANCE QUEUE</label>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aircraft</th><th>Readiness</th><th>Priority</th><th>Issue</th><th>Recommended Action</th></tr></thead>
+          <tbody id="optimizationBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="panel phase9-panel">
+  <div class="panel-title">
+    <div><label>COST & INVENTORY</label><h2>Maintenance Cost & Spare-Parts Planning</h2></div>
+    <button onclick="loadMaintenanceOptimization()">Refresh</button>
+  </div>
+  <p class="muted">Transparent what-if planning layer that estimates maintenance spend, inventory reorder needs and avoided downtime value. Cost figures are illustrative SIH MVP assumptions.</p>
+  <div class="optimization-cards">
+    <div class="insight-card info"><small>PARTS TO REORDER</small><strong id="phase9ReorderCount">—</strong></div>
+    <div class="insight-card high"><small>EST. REORDER SPEND</small><strong id="phase9ReorderSpend">—</strong></div>
+    <div class="insight-card critical"><small>PLANNED MAINTENANCE COST</small><strong id="phase9MaintenanceCost">—</strong></div>
+    <div class="insight-card healthy"><small>AVOIDED DOWNTIME VALUE</small><strong id="phase9AvoidedValue">—</strong></div>
+  </div>
+  <div class="optimization-grid">
+    <div>
+      <label>SPARE-PARTS WHAT-IF PLAN</label>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Part</th><th>Stock</th><th>Reorder</th><th>Suggested Qty</th><th>Est. Spend</th><th>Status</th></tr></thead>
+          <tbody id="phase9PartsBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <label>MAINTENANCE VALUE QUEUE</label>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aircraft</th><th>Priority</th><th>Est. Cost</th><th>Avoided Downtime</th><th>Net Value</th><th>Action</th></tr></thead>
+          <tbody id="phase9MaintenanceBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="insight-subtitle" id="phase9Recommendation">Loading recommendation…</div>
+</section>
+
+
+
+
+
+<section class="panel phase13-panel" id="ai-command">
+  <div class="panel-title">
+    <div>
+      <label>AI FLEET COMMAND</label>
+      <h2>AI Fleet Command & Decision Center</h2>
+    </div>
+    <button onclick="loadFleetCommandCenter()">Refresh</button>
+  </div>
+  <p class="muted">Executive decision-support layer combining fleet health, AI failure risk, maintenance execution and spare-parts readiness.</p>
+
+  <div class="execution-cards">
+    <article><small>FLEET HEALTH</small><strong id="phase13FleetHealth">—</strong></article>
+    <article class="execution-active"><small>CRITICAL AIRCRAFT</small><strong id="phase13Critical">—</strong></article>
+    <article><small>OPEN WORK ORDERS</small><strong id="phase13OpenOrders">—</strong></article>
+    <article class="execution-complete"><small>7-DAY MAINTENANCE</small><strong id="phase13Next7">—</strong></article>
+    <article><small>OVERDUE ORDERS</small><strong id="phase13Overdue">—</strong></article>
+  </div>
+
+  <div class="command-banner" id="phase13Headline">
+    <div>
+      <div class="decision-label">CURRENT COMMAND RECOMMENDATION</div>
+      <strong id="phase13HeadlineText">Loading AI command recommendation…</strong>
+    </div>
+    <span class="priority medium" id="phase13HeadlineType">LOADING</span>
+  </div>
+
+  <div class="two-col phase13-main-grid">
+    <div>
+      <label>AI PRIORITY QUEUE</label>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Aircraft</th><th>Command Score</th><th>Health</th><th>Failure</th><th>Priority</th><th>Issue</th><th>Action</th></tr>
+          </thead>
+          <tbody id="phase13QueueBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <label>AI RECOMMENDATIONS</label>
+      <div class="command-recommendations">
+        <div class="command-rec"><small>MAINTENANCE</small><b id="phase13MaintenanceRec">—</b></div>
+        <div class="command-rec"><small>LOGISTICS</small><b id="phase13LogisticsRec">—</b></div>
+        <div class="command-rec"><small>PLANNING</small><b id="phase13PlanningRec">—</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase13-bottom-grid">
+    <div>
+      <label>DECISION LIFECYCLE</label>
+      <div class="lifecycle">
+        <div><span>DETECTED</span><strong id="phase13Detected">—</strong></div>
+        <div><span>AI PRIORITY</span><strong id="phase13AiPriority">—</strong></div>
+        <div><span>PLANNED</span><strong id="phase13Planned">—</strong></div>
+        <div><span>EXECUTING</span><strong id="phase13Executing">—</strong></div>
+        <div><span>COMPLETED</span><strong id="phase13Completed">—</strong></div>
+      </div>
+    </div>
+    <div>
+      <label>LOW-STOCK PARTS</label>
+      <div id="phase13PartsList" class="insight-list"></div>
+    </div>
+    <div>
+      <label>NEXT 7-DAY MAINTENANCE</label>
+      <div id="phase13ScheduleList" class="insight-list"></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel phase12-panel">
+  <div class="panel-title">
+    <div><label>FLEET HEALTH INTELLIGENCE</label><h2>Fleet Health Trends & Risk Intelligence</h2></div>
+    <button onclick="loadFleetHealthIntelligence()">Refresh</button>
+  </div>
+  <p class="muted">Transparent health scoring, deterioration detection and recurring-issue intelligence built from current telemetry and maintenance history.</p>
+  <div class="execution-cards">
+    <article><small>FLEET HEALTH</small><strong id="phase12FleetHealth">—</strong></article>
+    <article><small>PRIORITY AIRCRAFT</small><strong id="phase12Priority">—</strong></article>
+    <article><small>DETERIORATING</small><strong id="phase12Deteriorating">—</strong></article>
+    <article><small>RECURRING ISSUES</small><strong id="phase12Recurring">—</strong></article>
+  </div>
+  <div class="two-col">
+    <div>
+      <label>AIRCRAFT HEALTH RANKING</label>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Aircraft</th><th>Health</th><th>Trend</th><th>Priority</th><th>Issue</th><th>Action</th></tr></thead>
+        <tbody id="phase12RankingBody"></tbody>
+      </table></div>
+    </div>
+    <div>
+      <label>RECURRING ISSUE INTELLIGENCE</label>
+      <div id="phase12RecurringList" class="insight-list"></div>
+      <div class="insight-subtitle">UPCOMING MAINTENANCE RISK</div>
+      <div id="phase12UpcomingList" class="insight-list"></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel phase11-panel">
+  <div class="panel-title">
+    <div><label>MAINTENANCE ANALYTICS</label><h2>Maintenance Performance & History</h2></div>
+    <button onclick="loadMaintenanceAnalytics()">Refresh</button>
+  </div>
+  <p class="muted">Turn maintenance execution records into measurable performance, effort variance and traceable history.</p>
+  <div class="execution-cards">
+    <article><small>Completion Rate</small><strong id="analyticsCompletionRate">—</strong></article>
+    <article><small>Completed Jobs</small><strong id="analyticsCompleted">—</strong></article>
+    <article><small>Avg Actual Hours</small><strong id="analyticsAvgHours">—</strong></article>
+    <article><small>PASS Rate</small><strong id="analyticsPassRate">—</strong></article>
+  </div>
+  <div class="two-col">
+    <div>
+      <label>TEAM / TECHNICIAN PERFORMANCE</label>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Team / Technician</th><th>Jobs</th><th>Completed</th><th>Avg Hours</th><th>PASS</th><th>Follow-up</th></tr></thead>
+        <tbody id="analyticsTeamBody"></tbody>
+      </table></div>
+    </div>
+    <div>
+      <label>EFFORT SUMMARY</label>
+      <div class="insight-grid" id="analyticsSummaryGrid"></div>
+    </div>
+  </div>
+  <div style="margin-top:18px">
+    <label>MAINTENANCE EXECUTION HISTORY</label>
+    <div class="table-wrap"><table>
+      <thead><tr><th>WO</th><th>Aircraft</th><th>Issue</th><th>Estimated h</th><th>Actual h</th><th>Variance</th><th>Result</th><th>Completed</th></tr></thead>
+      <tbody id="analyticsHistoryBody"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<section class="panel phase10-panel" id="maintenance">
+  <div class="panel-title">
+    <div>
+      <label>MAINTENANCE EXECUTION</label>
+      <h2>Execution & Closure Control</h2>
+    </div>
+    <button onclick="loadExecution()">Refresh</button>
+  </div>
+  <p class="muted">Move scheduled work into execution, capture actual maintenance effort, and close the work order with a traceable result.</p>
+  <div class="execution-cards">
+    <article><small>Scheduled</small><strong id="execScheduled">—</strong></article>
+    <article class="execution-active"><small>In Progress</small><strong id="execInProgress">—</strong></article>
+    <article class="execution-complete"><small>Completed</small><strong id="execCompleted">—</strong></article>
+    <article><small>Avg Actual Hours</small><strong id="execAvgHours">—</strong></article>
+  </div>
+  <div class="table-wrap execution-table">
+    <table>
+      <thead><tr><th>WO</th><th>Aircraft</th><th>Issue</th><th>Team / Technician</th><th>Started</th><th>Hours</th><th>Result</th><th>Action</th></tr></thead>
+      <tbody id="executionBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="two-col"><div class="panel"><div class="panel-title"><div><label>MAINTENANCE CONTROL</label><h2>Work Orders</h2></div><button onclick="loadWorkOrders()">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Aircraft</th><th>Priority</th><th>Issue</th><th>Team</th><th>Due</th><th>Status</th><th>Execution</th></tr></thead><tbody id="ordersBody"></tbody></table></div></div><div class="panel"><label>LOGISTICS</label><h2>Spare Parts</h2><div class="table-wrap"><table><thead><tr><th>Part</th><th>Stock</th><th>Reorder</th><th>Lead</th><th>Status</th></tr></thead><tbody id="sparesBody"></tbody></table></div></div></section>
+<section class="panel"><label>MAINTENANCE PLANNING</label><h2>Upcoming Schedule</h2><div class="table-wrap"><table><thead><tr><th>Aircraft</th><th>Maintenance</th><th>Due Date</th><th>Est. Hours</th><th>Status</th></tr></thead><tbody id="scheduleBody"></tbody></table></div></section>
+</main>
+<script>
+let selectedAircraft=null;
+function drawLineChart(id,labels,values,suffix=''){const c=document.getElementById(id),ctx=c.getContext('2d'),w=c.width,h=c.height,p=38,min=Math.min(...values),max=Math.max(...values),range=(max-min)||1;ctx.clearRect(0,0,w,h);ctx.strokeStyle='#263650';ctx.lineWidth=1;ctx.font='11px Arial';ctx.fillStyle='#91a0b7';for(let i=0;i<5;i++){let y=p+i*(h-p*2)/4;ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(w-p,y);ctx.stroke();ctx.fillText((max-i*range/4).toFixed(1)+suffix,4,y+4)}ctx.strokeStyle='#56b4ff';ctx.lineWidth=3;ctx.beginPath();values.forEach((v,i)=>{let x=p+i*(w-p*2)/(values.length-1||1),y=h-p-((v-min)/range)*(h-p*2);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();ctx.fillStyle='#56b4ff';values.forEach((v,i)=>{let x=p+i*(w-p*2)/(values.length-1||1),y=h-p-((v-min)/range)*(h-p*2);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill()});ctx.fillStyle='#91a0b7';labels.forEach((l,i)=>{if(i%Math.ceil(labels.length/7)===0||i===labels.length-1){let x=p+i*(w-p*2)/(labels.length-1||1);ctx.fillText(l.slice(5),x-15,h-10)}})}
+
+let twinTimer=null;
+let twinAircraft=null;
+let twinSimulationRunning=false;
+
+async function showDigitalTwin(code){
+  twinAircraft=code;
+  const panel=document.getElementById('digitalTwinPanel');
+  panel.classList.remove('hidden');
+  document.getElementById('twinTitle').textContent=code;
+  document.getElementById('simulationScenario').value='NORMAL';
+  setSimulationUI(false,'IDLE');
+  const r=await fetch('/api/digital-twin/'+encodeURIComponent(code)+'/simulation');
+  const data=await r.json();
+  document.getElementById('twinTitle').textContent=data.aircraft_code+' • '+data.aircraft_type;
+  renderTwinSimulation(data);
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+  startTwinTelemetry();
+}
+
+function renderTwinSimulation(data){
+  const p=data.prediction || {};
+  const t=data.telemetry || {};
+  const health=Number(p.twin_health ?? data.overall_health ?? 0);
+  const score=document.getElementById('twinHealth');
+  score.textContent=health+'%';
+
+  const state=document.getElementById('twinState');
+  state.textContent=health>=70?'HEALTHY':(health>=45?'ATTENTION':'CRITICAL');
+  state.className='status '+(health>=70?'healthy':(health>=45?'medium-risk':'high-risk'));
+
+  document.getElementById('twinAlerts').innerHTML=buildTwinAlerts(t,health,p);
+  document.getElementById('liveFailureProbability').textContent=(p.failure_probability ?? '—')+'%';
+  document.getElementById('liveRiskLevel').textContent=p.risk_level || '—';
+  document.getElementById('livePriority').textContent=p.priority || '—';
+  document.getElementById('liveIssue').textContent=p.predicted_issue || '—';
+
+  document.getElementById('componentGrid').innerHTML=(p.components || []).map(c=>{
+    const cls=c.health>=70?'healthy':(c.health>=45?'medium':'critical');
+    return `<article class="component-card">
+      <div class="component-head"><b>${c.component}</b><strong>${c.health}%</strong></div>
+      <div class="health-track"><span class="${cls}" style="width:${c.health}%"></span></div>
+      <small>${c.status} • ${c.basis}</small>
+    </article>`;
+  }).join('');
+
+  updateTwinTelemetry(t);
+}
+
+function buildTwinAlerts(t,health,p){
+  const alerts=[];
+  if(Number(t.engine_temperature)>=95) alerts.push('Engine temperature above 95 °C');
+  if(Number(t.vibration)>=0.90) alerts.push('High vibration detected');
+  if(Number(t.oil_pressure)<=32) alerts.push('Low oil-pressure condition');
+  if(health<70 && !alerts.length) alerts.push('Digital-twin health requires maintenance review');
+  if((p.priority==='CRITICAL' || p.priority==='HIGH') && !alerts.includes('Maintenance priority elevated')){
+    alerts.push('Maintenance priority elevated');
+  }
+  return alerts.length ? alerts.map(a=>`<div class="alert-item">${a}</div>`).join('') : '<div class="muted">No active alerts</div>';
+}
+
+function updateTwinTelemetry(t){
+  if(!t)return;
+  document.getElementById('liveTemp').textContent=t.engine_temperature+' °C';
+  document.getElementById('liveVibration').textContent=t.vibration;
+  document.getElementById('livePressure').textContent=t.oil_pressure+' PSI';
+  document.getElementById('liveHours').textContent=t.flight_hours;
+  document.getElementById('twinUpdated').textContent=(t.simulation_running?'Live simulation • ':'Telemetry • ')+(t.timestamp || 'updated');
+}
+
+function setSimulationUI(running,state){
+  twinSimulationRunning=running;
+  const badge=document.getElementById('simulationState');
+  badge.textContent=state;
+  badge.className='status '+(running?'healthy':'medium-risk')+(running?' simulation-pulse':'');
+  document.getElementById('startSimulationBtn').disabled=running;
+  document.getElementById('stopSimulationBtn').disabled=!running;
+}
+
+async function startTwinSimulation(){
+  if(!twinAircraft)return;
+  const scenario=document.getElementById('simulationScenario').value;
+  const r=await fetch('/api/digital-twin/'+encodeURIComponent(twinAircraft)+'/simulation/start?scenario='+encodeURIComponent(scenario),{method:'POST'});
+  if(!r.ok){alert('Could not start the digital twin simulation.');return;}
+  const data=await r.json();
+  setSimulationUI(true,scenario);
+  renderTwinSimulation(data);
+  startTwinTelemetry();
+}
+
+async function stopTwinSimulation(){
+  if(!twinAircraft)return;
+  const r=await fetch('/api/digital-twin/'+encodeURIComponent(twinAircraft)+'/simulation/stop',{method:'POST'});
+  if(!r.ok)return;
+  const data=await r.json();
+  setSimulationUI(false,'PAUSED');
+  renderTwinSimulation(data);
+}
+
+async function resetTwinSimulation(){
+  if(!twinAircraft)return;
+  const r=await fetch('/api/digital-twin/'+encodeURIComponent(twinAircraft)+'/simulation/reset',{method:'POST'});
+  if(!r.ok)return;
+  const data=await r.json();
+  document.getElementById('simulationScenario').value='NORMAL';
+  setSimulationUI(false,'IDLE');
+  renderTwinSimulation(data);
+}
+
+async function refreshTwinTelemetry(){
+  if(!twinAircraft)return;
+  const r=await fetch('/api/digital-twin/'+encodeURIComponent(twinAircraft)+'/simulation');
+  if(!r.ok)return;
+  const data=await r.json();
+  renderTwinSimulation(data);
+  setSimulationUI(data.running,data.running?data.scenario:'PAUSED');
+}
+
+function startTwinTelemetry(){
+  if(twinTimer)clearInterval(twinTimer);
+  refreshTwinTelemetry();
+  twinTimer=setInterval(refreshTwinTelemetry,2000);
+}
+
+function closeDigitalTwin(){
+  document.getElementById('digitalTwinPanel').classList.add('hidden');
+  if(twinTimer){clearInterval(twinTimer);twinTimer=null;}
+  twinAircraft=null;
+  twinSimulationRunning=false;
+}
+
+
+async function loadMaintenanceOptimization(){
+  const r=await fetch('/api/maintenance-optimization');
+  if(!r.ok)return;
+  const d=await r.json();
+  const money=v=>'$'+Number(v||0).toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('phase9ReorderCount').textContent=d.inventory.parts_to_reorder;
+  document.getElementById('phase9ReorderSpend').textContent=money(d.inventory.estimated_reorder_spend);
+  document.getElementById('phase9MaintenanceCost').textContent=money(d.maintenance.estimated_planned_cost);
+  document.getElementById('phase9AvoidedValue').textContent=money(d.maintenance.top_10_avoided_downtime_value);
+  document.getElementById('phase9PartsBody').innerHTML=d.inventory.items.map(x=>`<tr>
+    <td><b>${x.part_code}</b><br><small>${x.part_name}</small></td>
+    <td>${x.stock}</td><td>${x.reorder_level}</td><td>${x.suggested_order_qty}</td>
+    <td>${money(x.estimated_spend)}</td>
+    <td><span class="status ${x.status==='REORDER NOW'?'high-risk':'healthy'}">${x.status}</span></td>
+  </tr>`).join('');
+  document.getElementById('phase9MaintenanceBody').innerHTML=d.maintenance.items.slice(0,12).map(x=>`<tr>
+    <td><b>${x.aircraft_code}</b><br><small>${x.aircraft_type}</small></td>
+    <td><span class="priority ${x.priority.toLowerCase()}">${x.priority}</span></td>
+    <td>${money(x.estimated_maintenance_cost)}</td>
+    <td>${money(x.estimated_avoided_downtime_cost)}</td>
+    <td><b>${money(x.net_value)}</b></td>
+    <td>${x.action}</td>
+  </tr>`).join('');
+  document.getElementById('phase9Recommendation').textContent=d.recommendation;
+}
+
+async function showDecision(code){
+  const panel=document.getElementById('decisionPanel');
+  const d=await (await fetch('/api/decision/'+encodeURIComponent(code))).json();
+  document.getElementById('decisionTitle').textContent=d.aircraft_code+' • '+d.aircraft_type;
+  document.getElementById('decisionText').textContent=d.decision;
+  const p=document.getElementById('decisionPriority');
+  p.textContent=d.priority; p.className='priority '+d.priority.toLowerCase();
+  document.getElementById('decisionFailure').textContent=(d.failure_probability ?? '—')+'%';
+  document.getElementById('decisionTwin').textContent=d.twin_health+'%';
+  document.getElementById('decisionWindow').textContent=d.maintenance_window;
+  document.getElementById('decisionIssue').textContent=d.predicted_issue;
+  document.getElementById('decisionRecommendation').textContent=d.recommendation;
+  document.getElementById('riskFactors').innerHTML=d.top_risk_factors.length
+    ? d.top_risk_factors.map(x=>`<div class="factor"><div><b>${x.factor}</b><small>${x.value}</small></div><span class="factor-${x.severity.toLowerCase()}">${x.severity}</span></div>`).join('')
+    : '<div class="muted">No dominant risk factor detected.</div>';
+  document.getElementById('recommendedParts').innerHTML=d.recommended_parts.length
+    ? d.recommended_parts.map(x=>`<div class="part-rec"><div><b>${x.part_code}</b><small>${x.part_name} • Stock ${x.stock} / Reorder ${x.reorder_level}</small></div><span class="status ${x.status==='REORDER'?'high-risk':'healthy'}">${x.status}</span></div>`).join('')
+    : '<div class="muted">No specific spare part recommendation.</div>';
+  panel.classList.remove('hidden');
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeDecision(){document.getElementById('decisionPanel').classList.add('hidden')}
+
+async function loadPriorityQueue(){
+  const rows=await(await fetch('/api/priority-queue')).json();
+  document.getElementById('priorityBody').innerHTML=rows.slice(0,12).map(x=>`<tr>
+    <td><b>#${x.rank}</b></td><td><b>${x.aircraft_code}</b><br><small>${x.aircraft_type}</small></td>
+    <td><span class="priority ${x.priority.toLowerCase()}">${x.priority}</span></td>
+    <td>${x.failure_probability}%</td><td>${x.twin_health}%</td><td>${x.predicted_issue}</td>
+    <td><button class="decision-btn" onclick="showDecision('${x.aircraft_code}')">View</button></td>
+  </tr>`).join('');
+}
+
+async function loadInsights(){
+  const d=await(await fetch('/api/insights')).json();
+
+  // Fleet-risk cards use the same thresholds as /api/summary:
+  // HIGH RISK >= 75, MEDIUM RISK 50-74.9, HEALTHY < 50.
+  document.getElementById('riskInsightsGrid').innerHTML=[
+    ['HIGH RISK',d.high_risk_count,'critical'],
+    ['MEDIUM RISK',d.medium_risk_count,'high'],
+    ['HEALTHY',d.healthy_count,'medium'],
+  ].map(x=>`<div class="insight-card ${x[2]}"><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('');
+
+  // Decision-support priority is a separate AI layer and can legitimately
+  // classify an aircraft differently from its raw fleet-risk bucket.
+  document.getElementById('insightsGrid').innerHTML=[
+    ['CRITICAL DECISION',d.critical_count,'critical'],
+    ['HIGH DECISION',d.high_count,'high'],
+    ['MEDIUM DECISION',d.medium_count,'medium'],
+    ['OPEN ORDERS',d.open_orders,'info']
+  ].map(x=>`<div class="insight-card ${x[2]}"><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('');
+  document.getElementById('insightParts').innerHTML=d.low_stock.length
+    ? d.low_stock.map(x=>`<div class="insight-row"><b>${x.part_code}</b><span>${x.stock}/${x.reorder_level} • ${x.lead_days}d lead</span></div>`).join('')
+    : '<div class="muted">No parts require reorder.</div>';
+}
+
+async function showPrediction(code){selectedAircraft=code;const d=await(await fetch('/api/aircraft/'+code)).json(),p=d.ai_prediction;document.getElementById('predictionPanel').classList.remove('hidden');document.getElementById('aircraftTitle').textContent=d.aircraft_code+' • '+d.aircraft_type;document.getElementById('failureProbability').textContent=p.failure_probability+'%';document.getElementById('aiRisk').textContent=p.risk_level;document.getElementById('predictedIssue').textContent=p.predicted_issue;document.getElementById('recommendation').textContent=p.recommendation;document.getElementById('scheduleDate').value='';drawLineChart('aircraftChart',d.health_history.map(x=>x.recorded_at),d.health_history.map(x=>x.engine_temperature),'°');document.getElementById('predictionPanel').scrollIntoView({behavior:'smooth'})}
+function closePrediction(){document.getElementById('predictionPanel').classList.add('hidden')}
+async function createWorkOrder(){if(!selectedAircraft)return;const payload={aircraft_code:selectedAircraft,assigned_team:document.getElementById('team').value,scheduled_date:document.getElementById('scheduleDate').value||null};const r=await fetch('/api/work-orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(r.ok){alert('Maintenance work order created successfully.');loadAll()}else alert('Could not create work order.')}
+async function loadWorkOrders(){
+  const rows=await(await fetch('/api/work-orders')).json();
+  document.getElementById('ordersBody').innerHTML=rows.map(x=>{
+    const action=x.status==='SCHEDULED'||x.status==='OPEN'
+      ? `<button class="execute-btn" onclick="startExecution(${x.id})">Start</button>`
+      : x.status==='IN PROGRESS'
+        ? `<button class="execute-btn complete" onclick="completeExecution(${x.id})">Complete</button>`
+        : `<span class="muted">${x.status==='COMPLETED'?'DONE':'—'}</span>`;
+    return `<tr>
+      <td>#${x.id}</td><td>${x.aircraft_code}</td>
+      <td><span class="priority ${x.priority.toLowerCase()}">${x.priority}</span></td>
+      <td>${x.issue}</td><td>${x.assigned_team}</td><td>${x.scheduled_date}</td>
+      <td><select onchange="updateOrder(${x.id},this.value)">
+        <option ${x.status==='OPEN'?'selected':''}>OPEN</option>
+        <option ${x.status==='SCHEDULED'?'selected':''}>SCHEDULED</option>
+        <option ${x.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option>
+        <option ${x.status==='COMPLETED'?'selected':''}>COMPLETED</option>
+        <option ${x.status==='CANCELLED'?'selected':''}>CANCELLED</option>
+      </select></td>
+      <td>${action}</td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="8" class="muted">No work orders yet.</td></tr>';
+}
+async function updateOrder(id,status){await fetch('/api/work-orders/'+id+'?status='+encodeURIComponent(status),{method:'PATCH'});loadWorkOrders();loadExecution();loadAll()}
+async function startExecution(id){
+  const technician=prompt('Technician / maintenance team:', 'Maintenance Team A');
+  if(technician===null)return;
+  const r=await fetch('/api/maintenance-execution/'+id+'/start?technician='+encodeURIComponent(technician||'Maintenance Team A'),{method:'POST'});
+  if(!r.ok){alert((await r.json()).detail||'Could not start maintenance execution.');return;}
+  loadWorkOrders();loadExecution();loadMaintenanceAnalytics();
+}
+async function loadMaintenanceAnalytics(){
+  const r=await fetch('/api/maintenance-analytics');
+  if(!r.ok)return;
+  const d=await r.json(), k=d.kpis;
+  document.getElementById('analyticsCompletionRate').textContent=k.completion_rate+'%';
+  document.getElementById('analyticsCompleted').textContent=k.completed_orders;
+  document.getElementById('analyticsAvgHours').textContent=k.avg_actual_hours+' h';
+  document.getElementById('analyticsPassRate').textContent=k.pass_rate+'%';
+  document.getElementById('analyticsTeamBody').innerHTML=d.team_performance.map(x=>`<tr>
+    <td><b>${x.team}</b></td><td>${x.jobs}</td><td>${x.completed}</td><td>${x.avg_actual_hours??'—'}</td><td>${x.pass_count}</td><td>${x.followup_count}</td>
+  </tr>`).join('')||'<tr><td colspan="6" class="muted">No execution records yet. Complete a maintenance work order to generate analytics.</td></tr>';
+  document.getElementById('analyticsSummaryGrid').innerHTML=[
+    ['Scheduled / Open',k.scheduled],['In Progress',k.in_progress],['Total Actual Hours',k.total_actual_hours+' h'],
+    ['Completed Executions',k.completed_executions],['Conditional',k.conditional_count],['Follow-up',k.followup_count],
+    ['Planned Hours',k.estimated_planned_hours+' h'],['Execution Rate',k.execution_rate+'%']
+  ].map(x=>`<div class="insight-card info"><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('');
+  const moneyless=d.history||[];
+  document.getElementById('analyticsHistoryBody').innerHTML=moneyless.map(x=>`<tr>
+    <td>#${x.work_order_id}</td><td><b>${x.aircraft_code}</b></td><td>${x.issue}</td><td>${x.estimated_hours??'—'}</td>
+    <td>${x.actual_hours??'—'}</td><td>${x.variance_hours===null?'—':(x.variance_hours>0?'+':'')+x.variance_hours}</td>
+    <td>${x.result?`<span class="execution-result ${x.result==='PASS'?'pass':x.result==='CONDITIONAL'?'conditional':'followup'}">${x.result}</span>`:'<span class="muted">IN PROGRESS</span>'}</td>
+    <td>${x.completed_at||'—'}</td>
+  </tr>`).join('')||'<tr><td colspan="8" class="muted">No maintenance execution records yet.</td></tr>';
+}
+
+async function completeExecution(id){
+  const hours=prompt('Actual maintenance hours:', '6');
+  if(hours===null)return;
+  const actual=parseFloat(hours);
+  if(!Number.isFinite(actual)||actual<=0){alert('Enter a valid positive number of hours.');return;}
+  const technician=prompt('Technician / maintenance team:', 'Maintenance Team A');
+  if(technician===null)return;
+  const result=prompt('Completion result: PASS / CONDITIONAL / REQUIRES FOLLOW-UP','PASS');
+  if(result===null)return;
+  const notes=prompt('Maintenance notes (optional):','Inspection completed and aircraft cleared for monitoring.')||'';
+  const r=await fetch('/api/maintenance-execution/'+id+'/complete',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({technician,actual_hours:actual,result,notes})
+  });
+  if(!r.ok){alert((await r.json()).detail||'Could not complete maintenance execution.');return;}
+  alert('Maintenance execution completed and work order closed.');
+  loadWorkOrders();loadExecution();loadAll();
+}
+async function loadExecution(){
+  const r=await fetch('/api/maintenance-execution/summary');
+  if(!r.ok)return;
+  const d=await r.json();
+  document.getElementById('execScheduled').textContent=d.scheduled;
+  document.getElementById('execInProgress').textContent=d.in_progress;
+  document.getElementById('execCompleted').textContent=d.completed;
+  document.getElementById('execAvgHours').textContent=d.avg_actual_hours+' h';
+  document.getElementById('executionBody').innerHTML=d.items.map(x=>{
+    const action=x.status==='SCHEDULED'||x.status==='OPEN'
+      ? `<button class="execute-btn" onclick="startExecution(${x.work_order_id})">Start</button>`
+      : x.status==='IN PROGRESS'
+        ? `<button class="execute-btn complete" onclick="completeExecution(${x.work_order_id})">Complete</button>`
+        : `<span class="status healthy">CLOSED</span>`;
+    const result=x.result?`<span class="execution-result ${x.result==='PASS'?'pass':x.result==='CONDITIONAL'?'conditional':'followup'}">${x.result}</span>`:'<span class="muted">—</span>';
+    return `<tr>
+      <td>#${x.work_order_id}</td><td><b>${x.aircraft_code}</b></td>
+      <td>${x.issue}</td><td>${x.technician||x.assigned_team}</td>
+      <td>${x.started_at||'—'}</td><td>${x.actual_hours??'—'}</td>
+      <td>${result}</td><td>${action}</td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="8" class="muted">No maintenance execution records yet. Start a scheduled work order to begin.</td></tr>';
+}
+
+async function updateOrder(id,status){await fetch('/api/work-orders/'+id+'?status='+encodeURIComponent(status),{method:'PATCH'});loadWorkOrders();loadExecution();loadAll()}
+async function loadSpares(){const rows=await(await fetch('/api/spares')).json();document.getElementById('sparesBody').innerHTML=rows.map(x=>`<tr><td><b>${x.part_code}</b><br><small>${x.part_name}</small></td><td>${x.stock}</td><td>${x.reorder_level}</td><td>${x.lead_days}d</td><td><span class="status ${x.stock_status==='REORDER'?'high-risk':'healthy'}">${x.stock_status}</span></td></tr>`).join('')}
+async function loadSchedule(){const rows=await(await fetch('/api/schedule')).json();document.getElementById('scheduleBody').innerHTML=rows.slice(0,15).map(x=>`<tr><td><b>${x.aircraft_code}</b></td><td>${x.maintenance_type}</td><td>${x.due_date}</td><td>${x.estimated_hours}</td><td><span class="status healthy">${x.status}</span></td></tr>`).join('')}
+
+async function loadOptimization(){
+  const r=await fetch('/api/fleet-optimization');
+  if(!r.ok)return;
+  const d=await r.json();
+  document.getElementById('fleetReadiness').textContent=d.fleet_readiness+'%';
+  document.getElementById('readyAircraft').textContent=d.ready_aircraft;
+  document.getElementById('atRiskAircraft').textContent=d.at_risk_aircraft;
+  document.getElementById('priorityMaintenance').textContent=d.priority_maintenance;
+  document.getElementById('optimizationTypes').innerHTML=d.by_type.map(x=>`
+    <div class="availability-row">
+      <div><b>${x.aircraft_type}</b><small>${x.ready}/${x.total} ready • Avg readiness ${x.avg_readiness}%</small></div>
+      <strong>${x.availability}%</strong>
+    </div>`).join('');
+  document.getElementById('optimizationBody').innerHTML=d.recommendations.map(x=>`
+    <tr>
+      <td><b>${x.aircraft_code}</b><br><small>${x.aircraft_type}</small></td>
+      <td>${x.readiness_score}%</td>
+      <td><span class="priority ${x.priority.toLowerCase()}">${x.priority}</span></td>
+      <td>${x.predicted_issue}</td>
+      <td>${x.action}</td>
+    </tr>`).join('');
+}
+
+async function loadFleetHealthIntelligence(){
+  const setText=(id,value)=>{const el=document.getElementById(id); if(el) el.textContent=value;};
+  try{
+    setText('phase12FleetHealth','Loading…');
+    setText('phase12Priority','Loading…');
+    setText('phase12Deteriorating','Loading…');
+    setText('phase12Recurring','Loading…');
+
+    const r=await fetch('/api/fleet-health-intelligence',{cache:'no-store'});
+    if(!r.ok) throw new Error(`Fleet Health API returned ${r.status}`);
+    const d=await r.json(), k=d.kpis || {};
+
+    setText('phase12FleetHealth',(k.fleet_health ?? '—')+'%');
+    setText('phase12Priority',k.priority_aircraft ?? 0);
+    setText('phase12Deteriorating',k.deteriorating_aircraft ?? 0);
+    setText('phase12Recurring',k.recurring_issues ?? 0);
+
+    const ranking=d.ranking || [];
+    document.getElementById('phase12RankingBody').innerHTML=ranking.map(x=>`<tr>
+      <td><b>${x.aircraft_code}</b><br><small>${x.aircraft_type}</small></td>
+      <td>${x.health_score}%</td>
+      <td><span class="status ${x.trend==='DETERIORATING'?'high-risk':x.trend==='IMPROVING'?'healthy':'info'}">${x.trend}</span></td>
+      <td><span class="priority ${(x.priority||'LOW').toLowerCase()}">${x.priority}</span></td>
+      <td>${x.predicted_issue}</td><td>${x.recommended_action}</td>
+    </tr>`).join('') || '<tr><td colspan="6" class="muted">No fleet health records available.</td></tr>';
+
+    const recurring=d.recurring_issues || [];
+    document.getElementById('phase12RecurringList').innerHTML=recurring.map(x=>`<div class="insight-item"><b>${x.issue}</b><span>${x.aircraft_count} aircraft</span></div>`).join('') || '<div class="muted">No recurring issue pattern detected.</div>';
+
+    const upcoming=d.upcoming_maintenance || [];
+    document.getElementById('phase12UpcomingList').innerHTML=upcoming.slice(0,8).map(x=>`<div class="insight-item"><b>${x.aircraft_code}</b><span>${x.due_date} • ${x.maintenance_type}</span></div>`).join('') || '<div class="muted">No upcoming maintenance records.</div>';
+  }catch(err){
+    console.error('Phase 12 load failed:',err);
+    setText('phase12FleetHealth','ERR');
+    setText('phase12Priority','—');
+    setText('phase12Deteriorating','—');
+    setText('phase12Recurring','—');
+    const body=document.getElementById('phase12RankingBody');
+    if(body) body.innerHTML='<tr><td colspan="6" class="muted">Phase 12 data could not be loaded. Check that the FastAPI server is running and refresh.</td></tr>';
+  }
+}
+
+
+async function loadFleetCommandCenter(){
+  const setText=(id,value)=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=value;
+  };
+  try{
+    const r=await fetch('/api/fleet-command-center',{cache:'no-store'});
+    if(!r.ok) throw new Error(`Fleet Command API returned ${r.status}`);
+    const d=await r.json();
+    const k=d.kpis||{}, h=d.headline||{}, lc=d.lifecycle||{}, rec=d.recommendations||{};
+
+    setText('phase13FleetHealth',(k.fleet_health ?? '—')+'%');
+    setText('phase13Critical',k.critical_aircraft ?? 0);
+    setText('phase13OpenOrders',k.open_work_orders ?? 0);
+    setText('phase13Next7',k.next_7_days ?? 0);
+    setText('phase13Overdue',k.overdue_orders ?? 0);
+    setText('phase13HeadlineText',h.message || 'No command recommendation available.');
+    setText('phase13HeadlineType',h.type || 'MONITOR');
+
+    const headlineType=document.getElementById('phase13HeadlineType');
+    if(headlineType){
+      headlineType.className='priority '+(
+        h.type==='URGENT'||h.type==='CRITICAL'?'critical':
+        h.type==='LOGISTICS'||h.type==='PLANNING'?'medium':'low'
+      );
+    }
+
+    setText('phase13MaintenanceRec',rec.maintenance||'—');
+    setText('phase13LogisticsRec',rec.logistics||'—');
+    setText('phase13PlanningRec',rec.planning||'—');
+
+    const queue=d.queue||[];
+    document.getElementById('phase13QueueBody').innerHTML=queue.map(x=>`<tr>
+      <td><b>${x.aircraft_code}</b><br><small>${x.aircraft_type}</small></td>
+      <td><b>${x.command_score}</b></td>
+      <td>${x.health_score}%</td>
+      <td>${x.failure_probability==null?'—':x.failure_probability+'%'}</td>
+      <td><span class="priority ${(x.priority||'LOW').toLowerCase()}">${x.priority}</span></td>
+      <td>${x.issue}</td>
+      <td>${x.action}</td>
+    </tr>`).join('') || '<tr><td colspan="7" class="muted">No priority aircraft detected.</td></tr>';
+
+    setText('phase13Detected',lc.detected??0);
+    setText('phase13AiPriority',lc.ai_priority??0);
+    setText('phase13Planned',lc.planned??0);
+    setText('phase13Executing',lc.executing??0);
+    setText('phase13Completed',lc.completed??0);
+
+    const parts=d.low_stock||[];
+    document.getElementById('phase13PartsList').innerHTML=parts.map(x=>
+      `<div class="insight-item"><b>${x.part_code}</b><span>${x.stock}/${x.reorder_level} • ${x.lead_days}d lead</span></div>`
+    ).join('') || '<div class="muted">No low-stock parts.</div>';
+
+    const schedule=d.next_7_days||[];
+    document.getElementById('phase13ScheduleList').innerHTML=schedule.map(x=>
+      `<div class="insight-item"><b>${x.aircraft_code}</b><span>${x.due_date} • ${x.maintenance_type}</span></div>`
+    ).join('') || '<div class="muted">No maintenance due within 7 days.</div>';
+  }catch(err){
+    console.error('Phase 13 load failed:',err);
+    setText('phase13FleetHealth','ERR');
+    setText('phase13Critical','—');
+    setText('phase13OpenOrders','—');
+    setText('phase13Next7','—');
+    setText('phase13Overdue','—');
+    setText('phase13HeadlineText','Phase 13 data could not be loaded. Check the FastAPI server and refresh.');
+    setText('phase13HeadlineType','ERROR');
+    const body=document.getElementById('phase13QueueBody');
+    if(body) body.innerHTML='<tr><td colspan="7" class="muted">Fleet Command data unavailable.</td></tr>';
+  }
+}
+
+async function loadAll(){
+  // Phase 13 is loaded independently so executive decision data cannot block other phases.
+  loadFleetCommandCenter();
+  // Phase 12 is loaded independently so a failure in another dashboard API
+  // cannot leave Fleet Health Intelligence blank.
+  loadFleetHealthIntelligence();
+
+  try{
+    const [s,f,t,a]=await Promise.all([
+      fetch('/api/summary'),fetch('/api/fleet'),fetch('/api/trends'),fetch('/api/availability')
+    ]);
+    const summary=await s.json(),fleet=await f.json(),trend=await t.json(),avail=await a.json();
+    document.getElementById('total').textContent=summary.total;
+    document.getElementById('healthy').textContent=summary.healthy;
+    document.getElementById('medium').textContent=summary.medium_risk;
+    document.getElementById('high').textContent=summary.high_risk;
+    document.getElementById('availability').textContent=summary.availability+'%';
+    document.getElementById('openOrders').textContent=summary.open_work_orders;
+    document.getElementById('lowStock').textContent=summary.low_stock_parts;
+    document.getElementById('avgTemp').textContent=summary.avg_temperature+' °C';
+    document.getElementById('avgVibration').textContent=summary.avg_vibration;
+    document.getElementById('avgPressure').textContent=summary.avg_oil_pressure+' PSI';
+    document.getElementById('fleetBody').innerHTML=fleet.map(x=>`<tr>
+      <td><b>${x.aircraft_code}</b></td><td>${x.aircraft_type}</td><td><b>${x.risk_score}</b></td>
+      <td><span class="status ${x.status.replace(' ','-').toLowerCase()}">${x.status}</span></td>
+      <td>${x.engine_temperature} °C</td><td>${x.vibration}</td><td>${x.flight_hours}</td>
+      <td><div class="action-buttons">
+        <button class="ai-btn" onclick="showPrediction('${x.aircraft_code}')">AI / Plan</button>
+        <button class="decision-btn" onclick="showDecision('${x.aircraft_code}')">Decision</button>
+        <button class="twin-btn" onclick="showDigitalTwin('${x.aircraft_code}')">Twin</button>
+      </div></td></tr>`).join('');
+    drawLineChart('temperatureChart',trend.map(x=>x.day),trend.map(x=>x.avg_temperature),'°');
+    document.getElementById('availabilityList').innerHTML=avail.map(x=>`<div class="avail"><span>${x.aircraft_type}</span><b>${Math.round(x.available/x.total*100)}%</b><small>${x.available}/${x.total} available</small></div>`).join('');
+  }catch(err){
+    console.error('Core dashboard load failed:',err);
+  }
+
+  // Load the remaining panels independently; one failed API must not block others.
+  const loaders=[loadWorkOrders,loadSpares,loadSchedule,loadPriorityQueue,loadInsights,loadOptimization,loadMaintenanceOptimization,loadExecution,loadMaintenanceAnalytics];
+  await Promise.allSettled(loaders.map(fn=>fn()));
+}
+
+loadAll();
+</script></body></html>
