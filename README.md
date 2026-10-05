@@ -194,3 +194,72 @@ Phase 13 adds an executive command layer that combines the existing Phase 8–12
 
 ### Prototype note
 Phase 13 is a transparent SIH MVP decision-support layer. It uses synthetic fleet data and heuristic scoring; it is not an aviation-certified safety, dispatch or maintenance-control system.
+## Development Phases
+
+### Phase 1 — Project Setup & Architecture
+Initial project structure, application architecture and development environment setup.
+
+### Phase 2 — Database & Synthetic Fleet Data
+Implemented SQLite database and synthetic aircraft fleet data for the SIH MVP.
+
+### Phase 3 — Backend APIs & Fleet Management
+Implemented Python + FastAPI backend and APIs for aircraft, fleet monitoring, telemetry and maintenance operations.
+
+### Phase 4 — Predictive Maintenance / ML Model
+Implemented machine-learning based aircraft failure prediction using synthetic aircraft telemetry.
+
+### Phase 5 — Digital Twin & Fleet Intelligence
+Added aircraft health monitoring, Digital Twin capabilities and fleet intelligence.
+
+### Phase 6 — Maintenance & Decision Support
+Added maintenance prioritization and decision-support capabilities for identifying high-risk aircraft and maintenance requirements.
+
+### Phase 7 — Live Digital Twin Simulation
+Added live Digital Twin simulation with NORMAL, THERMAL STRESS, HIGH VIBRATION and LOW OIL PRESSURE scenarios, live telemetry updates, dynamic health recalculation and ML failure-probability prediction.
+
+### Phase 8 — Fleet Availability & Maintenance Optimization
+Added fleet readiness scoring, ready vs at-risk aircraft analysis, priority maintenance queue and maintenance optimization recommendations.
+
+**API:** `/api/fleet-optimization`
+
+### Phase 9 — Maintenance Cost & Spare-Parts Optimization
+Added maintenance cost estimation, spare-parts reorder quantity, estimated spend and maintenance value analysis.
+
+**API:** `/api/maintenance-optimization`
+
+### Phase 10 — Maintenance Execution & Closure
+Added maintenance execution tracking, technician/team assignment, actual maintenance hours, completion results, notes and execution history.
+
+**APIs:**
+- `/api/maintenance-execution/summary`
+- `/api/maintenance-execution/{order_id}`
+- `/api/maintenance-execution/{order_id}/start`
+- `/api/maintenance-execution/{order_id}/complete`
+
+### Phase 11 — Maintenance Analytics
+Added maintenance performance analytics including completion rate, PASS rate, actual hours, effort variance, team performance and execution history.
+
+**API:** `/api/maintenance-analytics`
+
+### Phase 12 — Fleet Health Intelligence
+Added transparent fleet health scoring, aircraft health ranking, deterioration trends, recurring issue detection and upcoming maintenance risk analysis.
+
+**API:** `/api/fleet-health-intelligence`
+
+### Phase 13 — AI Fleet Command & Decision Center
+Added an executive AI Fleet Command & Decision Center combining fleet health, risk, failure probability, maintenance and planning intelligence.
+
+Key capabilities:
+- Fleet Health and Critical Aircraft KPIs
+- AI Priority Queue
+- Transparent command score
+- Executive command recommendation
+- Maintenance, logistics and planning recommendations
+- Low-stock spare-parts alerts
+- Next 7-day maintenance schedule
+- Decision lifecycle:
+  **Detected → AI Priority → Planned → Executing → Completed**
+
+**API:** `/api/fleet-command-center`
+
+> AeroMaint AI is an SIH MVP decision-support prototype using synthetic fleet data and heuristic scoring. It is not an aviation-certified safety, dispatch or maintenance-control system.
